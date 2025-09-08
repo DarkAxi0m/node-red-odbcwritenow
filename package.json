@@ -1,0 +1,21 @@
+{
+  "name": "@Accede/node-red-contrib-odbcwritenow",
+  "version": "1.0.0",
+  "description", "Node-RED library for access in MYOB data via ODBCWriteNow"
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "node-red": {
+   "version": ">=4.0.0",
+    "nodes": {
+      "odbcwritenow-get": "odbcwritenow.js"
+    }
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}

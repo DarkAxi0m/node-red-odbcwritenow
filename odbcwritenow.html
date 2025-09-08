@@ -1,0 +1,37 @@
+<script type="text/javascript">
+    RED.nodes.registerType('odbcwritenow-get',{
+        category: 'ODBCWriteNow',
+        color: '#2596be',
+        defaults: {
+            name: {value:""},
+            apikey: {value:""},
+            what: {value:""}
+        },
+        inputs: 1,
+        outputs: 2,
+        icon: "odbcwritenow.png",
+        label: function() {
+            return this.name||"Get " + this.what;
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="odbcwritenow-get">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+  <div class="form-row">
+        <label for="node-input-what"><i class="fa fa-lock"></i> What</label>
+        <input type="text" id="node-input-what" placeholder="sales_invoice_item">
+    </div>
+  <div class="form-row">
+        <label for="node-input-apikey"><i class="fa fa-lock"></i> APIKey</label>
+        <input type="text" id="node-input-apikey" placeholder="APIKey">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="odbcwritenow-get">
+    <p>odbcwritenow downloader</p>
+</script>
+
