@@ -1,7 +1,7 @@
 {
   "name": "@Accede/node-red-contrib-odbcwritenow",
   "version": "1.0.0",
-  "description", "Node-RED library for access in MYOB data via ODBCWriteNow"
+  "description": "Node-RED library for access in MYOB data via ODBCWriteNow",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
