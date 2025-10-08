@@ -70,6 +70,11 @@ module.exports = function(RED) {
                 filtersstr += `&datefrom=${datefrom}`
             }
 
+            const dateto = encodeURIComponent(msg.dateto || "")
+            if (dateto.length > 0) {
+                filtersstr += `&datefrom=${dateto}`
+            }
+
             const url = `https://myobsync.accede.com.au/download/${what}/json/${page}?apikey=${apikey}${filtersstr}`;
             DoImport(msg, url, node)
 

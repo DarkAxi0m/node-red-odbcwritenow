@@ -1,6 +1,6 @@
 {
   "name": "@accede/node-red-contrib-odbcwritenow",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Node-RED library for access in MYOB data via ODBCWriteNow",
   "main": "index.js",
   "scripts": {
