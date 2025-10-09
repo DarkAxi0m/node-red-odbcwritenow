@@ -72,7 +72,7 @@ module.exports = function(RED) {
 
             const dateto = encodeURIComponent(msg.dateto || "")
             if (dateto.length > 0) {
-                filtersstr += `&datefrom=${dateto}`
+                filtersstr += `&dateto=${dateto}`
             }
 
             const url = `https://myobsync.accede.com.au/download/${what}/json/${page}?apikey=${apikey}${filtersstr}`;
