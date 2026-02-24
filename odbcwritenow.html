@@ -5,7 +5,8 @@
         defaults: {
             name: {value:""},
             apikey: {value:""},
-            what: {value:""}
+            what: {value:""},
+            orderby: {value:""}
         },
         inputs: 1,
         outputs: 2,
@@ -24,6 +25,10 @@
   <div class="form-row">
         <label for="node-input-what"><i class="fa fa-lock"></i> What</label>
         <input type="text" id="node-input-what" placeholder="sales_invoice_item">
+    </div>
+    <div class="form-row">
+        <label for="node-input-orderby"><i class="fa fa-lock"></i> OrderBy</label>
+        <input type="text" id="node-input-orderby" placeholder="OrderBy">
     </div>
   <div class="form-row">
         <label for="node-input-apikey"><i class="fa fa-lock"></i> APIKey</label>

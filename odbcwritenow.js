@@ -54,11 +54,15 @@ module.exports = function(RED) {
             const page = parseInt(encodeURIComponent(msg.page || 0));
             const apikey = encodeURIComponent(msg.apikey || config.apikey);
             const what = encodeURIComponent(config.what)
+            const orderby = encodeURIComponent(msg.orderby || config.orderby);
+
+
 
             msg.page = page
             msg.what = what
             msg.retry = 0
 
+            var orderbystr = "";
             var filtersstr = "";
             const filters = encodeURIComponent(msg.filters || "")
             if (filters.length > 0) {
@@ -75,7 +79,11 @@ module.exports = function(RED) {
                 filtersstr += `&dateto=${dateto}`
             }
 
-            const url = `https://myobsync.accede.com.au/download/${what}/json/${page}?apikey=${apikey}${filtersstr}`;
+            if (orderby.length > 0) {
+                orderbystr += `&orderby=${orderby}`
+            }
+
+            const url = `https://myobsync.accede.com.au/download/${what}/json/${page}?apikey=${apikey}${filtersstr}${orderbystr}`;
             DoImport(msg, url, node)
 
         });
