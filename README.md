@@ -1,52 +1,85 @@
 # node-red-odbcwritenow
 
-Node-RED node for accessing MYOB data via **ODBCWriteNow**. Useful when you want AccountRight-style ODBC-style reads/writes in Node-RED without wrangling the raw HTTP yourself.
+Node-RED node for downloading MYOB data from ODBCWriteNow / MYOBSync.
 
-## Features
-- Node-RED palette node that talks to ODBC WriteNow
-- Read/write operations against MYOB AccountRight via the ODBC WriteNow API
-- Simple config for credentials and endpoint base URL
+This package provides one node type: `odbcwritenow-get`.
+
+## What It Does
+
+The node builds and calls:
+
+```text
+https://myobsync.accede.com.au/download/{what}/json/{page}?apikey={apikey}[&filters=...][&datefrom=...][&dateto=...][&orderby=...]
+```
+
+It then:
+
+- sends parsed JSON rows to output 1
+- sends "no data" completion messages to output 2
 
 ## Prerequisites
-- Node-RED ≥ 4.x installed and running
-- An active **ODBC WriteNow** account + API key
+
+- Node-RED `>= 4.0.0`
+- Valid ODBCWriteNow / MYOBSync API key
 
 ## Install
 
+Install in your Node-RED user directory:
+
 ```bash
-# install into your Node-RED user dir
 cd ~/.node-red
-npm install DarkAxi0m/node-red-odbcwritenow
+npm install @accede/node-red-contrib-odbcwritenow
 ```
 
-Restart Node-RED.
+Restart Node-RED after installation.
 
-If you manage Node-RED as a service:
-```bash
-sudo systemctl restart nodered
-```
+## Node Configuration
 
-## Usage
+Editor fields:
 
-1. In the Node-RED editor, open the palette and drag **ODBC WriteNow** onto your flow.
-2. Double-click the node and set:
-   - **Base URL**: your ODBC WriteNow endpoint (e.g. `https://myobsync.accede.com.au/`)
-   - **API Key**: your issued key
-   - **Operation/Path**: API route you need (e.g. download/upload endpoints per docs)
-   - **Params/Body**: any query/body fields required for your action
+- `Name` (optional)
+- `What` (required): dataset/resource name, for example `sales_invoice_item`
+- `OrderBy` (optional): default sort expression
+- `APIKey` (required unless provided in `msg.apikey`)
 
-Refer to the ODBC WriteNow developer docs for the exact routes and parameters.
+## Runtime Inputs (`msg`)
 
-Example (generic pattern):
-```text
-GET /api/download?table=Customers&updatedSince=2024-01-01
-POST /api/upload  (JSON body with rows)
-```
+You can override behavior per message:
+
+- `msg.page` (default `0`)
+- `msg.apikey` (overrides configured API key)
+- `msg.orderby` (overrides configured order by)
+- `msg.filters`
+- `msg.datefrom`
+- `msg.dateto`
+
+## Outputs
+
+`odbcwritenow-get` has 2 outputs:
+
+1. Data output
+- `msg.payload`: parsed JSON array returned by the API
+- `msg.rows`: number of rows in `payload`
+- `msg.page`, `msg.what`, `msg.retry`
+
+2. No-data output
+- emitted when response contains `"no data found"`
+- `msg.payload = []`
+- `msg.nodata = true`
+- `msg.complete = true`
+
+## Status Behavior
+
+- Blue ring: currently fetching
+- Green dot: rows returned
+- Green ring: no data found
+- Red ring: timeout/token error retries or request/parsing error
+
+## Notes
+
+- Base URL is currently fixed to `https://myobsync.accede.com.au`.
+- Timeout and token error responses are retried recursively.
 
 ## License
-ISC © Accede Holdings PTY LTD. See `LICENSE`.
 
-## Links
-- Repo: [DarkAxi0m/node-red-odbcwritenow](https://github.com/DarkAxi0m/node-red-odbcwritenow)
-- [ODBC WriteNow – Overview & pricing](https://odbcwritenow.com/)
-- [ODBC WriteNow – Developer docs](https://odbcwritenow.com/developers/)
+ISC. See [LICENSE](LICENSE).

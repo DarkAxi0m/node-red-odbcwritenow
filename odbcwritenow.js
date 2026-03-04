@@ -9,6 +9,7 @@ async function DoImport(msg, url, node) {
 
         datastr = await response.text();
         if (datastr.toLowerCase().includes("no data found")) {
+            console.log("no data found");
             msg.nodata = true
             msg.complete = true
             msg.payload = []
@@ -33,6 +34,8 @@ async function DoImport(msg, url, node) {
         //Everything looks good
         const data = JSON.parse(datastr);
         msg.rows = data.length
+        console.log("Page:", data.page, "Rows:", data.length)
+
         node.status({ fill: "green", shape: "dot", text: `#${msg.page}: ${msg.rows} Rows` })
         msg.payload = data;
         node.send([msg, null]);
