@@ -15,6 +15,9 @@ async function DoImport(msg, url, node, maxRetries, baseBackoffMs) {
 
         try {
             const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status} ${response.statusText}`)
+            }
             datastr = await response.text();
 
             if (datastr.toLowerCase().includes("no data found")) {
@@ -70,15 +73,37 @@ module.exports = function(RED) {
         var node = this;
         node.status({ text: `` })
         node.on('input', async function(msg) {
-            const page = parseInt(encodeURIComponent(msg.page || 0));
-            const apikey = encodeURIComponent(msg.apikey || config.apikey);
-            const what = encodeURIComponent(config.what)
+            const pageRaw = msg.page === undefined || msg.page === null || msg.page === "" ? 0 : msg.page
+            const page = parseInt(pageRaw, 10)
+            const apikeyRaw = msg.apikey || config.apikey
+            const whatRaw = config.what
             const orderby = encodeURIComponent(msg.orderby || config.orderby);
+
+            if (!whatRaw || String(whatRaw).trim().length === 0) {
+                node.status({ fill: "red", shape: "ring", text: "Invalid config: 'what' is required" })
+                node.error("Invalid config: 'what' is required", msg)
+                return
+            }
+
+            if (!apikeyRaw || String(apikeyRaw).trim().length === 0) {
+                node.status({ fill: "red", shape: "ring", text: "Missing API key" })
+                node.error("Missing API key: set config.apikey or msg.apikey", msg)
+                return
+            }
+
+            if (Number.isNaN(page) || page < 0) {
+                node.status({ fill: "red", shape: "ring", text: "Invalid page: must be >= 0" })
+                node.error(`Invalid page '${pageRaw}': must be a non-negative integer`, msg)
+                return
+            }
+
+            const apikey = encodeURIComponent(apikeyRaw);
+            const what = encodeURIComponent(whatRaw)
 
 
 
             msg.page = page
-            msg.what = what
+            msg.what = whatRaw
             const maxRetries = Number.isInteger(parseInt(config.maxRetries, 10))
                 ? Math.max(0, parseInt(config.maxRetries, 10))
                 : 3
