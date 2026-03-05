@@ -6,7 +6,9 @@
             name: {value:""},
             apikey: {value:""},
             what: {value:""},
-            orderby: {value:""}
+            orderby: {value:""},
+            maxRetries: {value:3},
+            retryBackoffMs: {value:500}
         },
         inputs: 1,
         outputs: 2,
@@ -30,6 +32,14 @@
         <label for="node-input-orderby"><i class="fa fa-lock"></i> OrderBy</label>
         <input type="text" id="node-input-orderby" placeholder="OrderBy">
     </div>
+    <div class="form-row">
+        <label for="node-input-maxRetries"><i class="fa fa-repeat"></i> MaxRetries</label>
+        <input type="number" id="node-input-maxRetries" min="0" placeholder="3">
+    </div>
+    <div class="form-row">
+        <label for="node-input-retryBackoffMs"><i class="fa fa-clock-o"></i> RetryBackoffMs</label>
+        <input type="number" id="node-input-retryBackoffMs" min="0" placeholder="500">
+    </div>
   <div class="form-row">
         <label for="node-input-apikey"><i class="fa fa-lock"></i> APIKey</label>
         <input type="text" id="node-input-apikey" placeholder="APIKey">
@@ -39,4 +49,3 @@
 <script type="text/html" data-help-name="odbcwritenow-get">
     <p>odbcwritenow downloader</p>
 </script>
-

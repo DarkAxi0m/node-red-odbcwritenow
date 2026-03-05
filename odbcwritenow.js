@@ -1,48 +1,64 @@
-async function DoImport(msg, url, node) {
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function DoImport(msg, url, node, maxRetries, baseBackoffMs) {
     console.log('>', url)
     msg.nodata = false
     delete msg.complete
-    node.status({ fill: "blue", shape: "ring", text: `Fetching #${msg.page}: ${msg.what}` })
-    var datastr = ""
-    try {
-        const response = await fetch(url);
+    let datastr = ""
+    let attempt = 0
 
-        datastr = await response.text();
-        if (datastr.toLowerCase().includes("no data found")) {
-            console.log("no data found");
-            msg.nodata = true
-            msg.complete = true
-            msg.payload = []
-            node.status({ fill: "green", shape: "ring", text: `#${msg.page}: No data found` })
-            return node.send([null, msg]);
-        }
+    while (attempt <= maxRetries) {
+        msg.retry = attempt
+        node.status({ fill: "blue", shape: "ring", text: `Fetching #${msg.page}: ${msg.what} (try ${attempt + 1}/${maxRetries + 1})` })
 
-        //Errors and retrys etc
-        if (datastr.toLowerCase().includes("timeout")) {
-            node.status({ fill: "red", shape: "ring", text: `#${msg.page}: MYOB Gateway Timeout` })
-            console.error("******* MYOB Gateway Timeout", msg.retry, msg.page, url)
-            msg.retry = msg.retry + 1
-            return await DoImport(msg, url, node)
-        }
-        if (datastr.toLowerCase().includes("token error")) {
-            node.status({ fill: "red", shape: "ring", text: `#${msg.page}: MYOB Token Error` })
-            console.error("******* MYOB Token Error", msg.retry, msg.page, url)
-            msg.retry = msg.retry + 1
-            return await DoImport(msg, url, node)
-        }
-        //---------------------------------
-        //Everything looks good
-        const data = JSON.parse(datastr);
-        msg.rows = data.length
-        console.log("Page:", data.page, "Rows:", data.length)
+        try {
+            const response = await fetch(url);
+            datastr = await response.text();
 
-        node.status({ fill: "green", shape: "dot", text: `#${msg.page}: ${msg.rows} Rows` })
-        msg.payload = data;
-        node.send([msg, null]);
-    } catch (error) {
-        node.status({ fill: "red", shape: "ring", text: error.message })
-        console.error(error.message)
-        console.log(datastr)
+            if (datastr.toLowerCase().includes("no data found")) {
+                console.log("no data found");
+                msg.nodata = true
+                msg.complete = true
+                msg.payload = []
+                node.status({ fill: "green", shape: "ring", text: `#${msg.page}: No data found` })
+                return node.send([null, msg]);
+            }
+
+            // Retry only for gateway timeout and token error responses.
+            if (datastr.toLowerCase().includes("timeout") || datastr.toLowerCase().includes("token error")) {
+                const isLastTry = attempt >= maxRetries
+                const kind = datastr.toLowerCase().includes("timeout") ? "MYOB Gateway Timeout" : "MYOB Token Error"
+
+                if (isLastTry) {
+                    node.status({ fill: "red", shape: "ring", text: `#${msg.page}: ${kind} (max retries reached)` })
+                    return node.error(`${kind} after ${maxRetries + 1} attempts`, msg)
+                }
+
+                const delayMs = Math.max(0, baseBackoffMs) * Math.pow(2, attempt)
+                node.status({ fill: "red", shape: "ring", text: `#${msg.page}: ${kind}, retrying in ${delayMs}ms` })
+                console.error("*******", kind, attempt, msg.page, `retry in ${delayMs}ms`)
+                attempt += 1
+                await sleep(delayMs)
+                continue
+            }
+
+            //---------------------------------
+            // Everything looks good.
+            const data = JSON.parse(datastr);
+            msg.rows = data.length
+            console.log("Page:", msg.page, "Rows:", data.length)
+
+            node.status({ fill: "green", shape: "dot", text: `#${msg.page}: ${msg.rows} Rows` })
+            msg.payload = data;
+            return node.send([msg, null]);
+        } catch (error) {
+            node.status({ fill: "red", shape: "ring", text: error.message })
+            console.error(error.message)
+            console.log(datastr)
+            return
+        }
     }
 
 }
@@ -63,7 +79,12 @@ module.exports = function(RED) {
 
             msg.page = page
             msg.what = what
-            msg.retry = 0
+            const maxRetries = Number.isInteger(parseInt(config.maxRetries, 10))
+                ? Math.max(0, parseInt(config.maxRetries, 10))
+                : 3
+            const backoffMs = Number.isInteger(parseInt(config.retryBackoffMs, 10))
+                ? Math.max(0, parseInt(config.retryBackoffMs, 10))
+                : 500
 
             var orderbystr = "";
             var filtersstr = "";
@@ -87,11 +108,10 @@ module.exports = function(RED) {
             }
 
             const url = `https://myobsync.accede.com.au/download/${what}/json/${page}?apikey=${apikey}${filtersstr}${orderbystr}`;
-            DoImport(msg, url, node)
+            DoImport(msg, url, node, maxRetries, backoffMs)
 
         });
     }
     RED.nodes.registerType("odbcwritenow-get", ODBCWriteNowGet);
 
 }
-

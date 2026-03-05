@@ -40,6 +40,8 @@ Editor fields:
 - `Name` (optional)
 - `What` (required): dataset/resource name, for example `sales_invoice_item`
 - `OrderBy` (optional): default sort expression
+- `MaxRetries` (optional, default `3`): number of retries for timeout/token errors
+- `RetryBackoffMs` (optional, default `500`): base delay in milliseconds; each retry uses exponential backoff (`base * 2^attempt`)
 - `APIKey` (required unless provided in `msg.apikey`)
 
 ## Runtime Inputs (`msg`)
@@ -78,7 +80,7 @@ You can override behavior per message:
 ## Notes
 
 - Base URL is currently fixed to `https://myobsync.accede.com.au`.
-- Timeout and token error responses are retried recursively.
+- Timeout and token error responses are retried using bounded exponential backoff.
 
 ## License
 
