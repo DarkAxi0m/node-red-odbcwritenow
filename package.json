@@ -1,6 +1,6 @@
 {
   "name": "@accede/node-red-contrib-odbcwritenow",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "",
   "main": "odbcwritenow.js",
   "scripts": {
