@@ -77,7 +77,7 @@ module.exports = function(RED) {
             const page = parseInt(pageRaw, 10)
             const apikeyRaw = msg.apikey || config.apikey
             const whatRaw = config.what
-            const orderby = encodeURIComponent(msg.orderby || config.orderby);
+            const orderby = config.orderby;
 
             if (!whatRaw || String(whatRaw).trim().length === 0) {
                 node.status({ fill: "red", shape: "ring", text: "Invalid config: 'what' is required" })
