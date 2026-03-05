@@ -55,6 +55,7 @@ async function DoImport(msg, url, node, maxRetries, baseBackoffMs) {
 
             node.status({ fill: "green", shape: "dot", text: `#${msg.page}: ${msg.rows} Rows` })
             msg.payload = data;
+            console.log(msg);
             return node.send([msg, null]);
         } catch (error) {
             node.status({ fill: "red", shape: "ring", text: error.message })
