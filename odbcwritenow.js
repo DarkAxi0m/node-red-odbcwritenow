@@ -29,10 +29,18 @@ async function DoImport(msg, url, node, maxRetries, baseBackoffMs) {
                 return node.send([null, msg]);
             }
 
-            // Retry only for gateway timeout and token error responses.
-            if (datastr.toLowerCase().includes("timeout") || datastr.toLowerCase().includes("token error")) {
+            // Retry only for known transient responses.
+            const lowerData = datastr.toLowerCase()
+            const hasTimeout = lowerData.includes("timeout")
+            const hasTokenError = lowerData.includes("token error")
+            const hasInternalError = lowerData.includes("internalerror") || lowerData.includes("internal error")
+
+            if (hasTimeout || hasTokenError || hasInternalError) {
                 const isLastTry = attempt >= maxRetries
-                const kind = datastr.toLowerCase().includes("timeout") ? "MYOB Gateway Timeout" : "MYOB Token Error"
+                let kind = "MYOB Retryable Error"
+                if (hasTimeout) kind = "MYOB Gateway Timeout"
+                if (hasTokenError) kind = "MYOB Token Error"
+                if (hasInternalError) kind = "MYOB InternalError"
 
                 if (isLastTry) {
                     node.status({ fill: "red", shape: "ring", text: `#${msg.page}: ${kind} (max retries reached)` })
